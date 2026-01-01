@@ -1,7 +1,37 @@
 import streamlit as st
-from database import create_db, add_user, login_user, save_current_chapter
+import sqlite3
+from database import create_db, add_user, login_user
 
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(page_title="AI Tutor - Class 9", layout="centered")
 
+# ---------------- DATABASE ----------------
+create_db()
+
+def save_current_chapter(username, subject, chapter):
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS progress (
+            username TEXT,
+            subject TEXT,
+            chapter TEXT
+        )
+    """)
+    c.execute(
+        "INSERT INTO progress VALUES (?, ?, ?)",
+        (username, subject, chapter)
+    )
+    conn.commit()
+    conn.close()
+
+# ---------------- SESSION STATE ----------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "user" not in st.session_state:
+    st.session_state.user = ""
+
+# ---------------- SUBJECT DATA ----------------
 subjects = {
     "Physics": [
         "Motion",
@@ -26,78 +56,48 @@ subjects = {
     ]
 }
 
-st.set_page_config(page_title="AI Tutor - Class 9", layout="centered")
-
-# create database
-create_db()
-
-# session state
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "user" not in st.session_state:
-    st.session_state.user = ""
-
+# ---------------- UI ----------------
 st.title("📘 AI Tutor – Class 9")
 
-# SIDEBAR MENU (FIXED)
-menu = ["Login", "Sign Up"]
-choice = st.sidebar.selectbox("Menu", menu)
+menu = st.sidebar.selectbox("Menu", ["Login", "Signup"])
+
+# ---------------- SIGNUP ----------------
+if menu == "Signup":
+    st.subheader("Create Account")
+    new_user = st.text_input("Username")
+    new_pass = st.text_input("Password", type="password")
+
+    if st.button("Signup"):
+        try:
+            add_user(new_user, new_pass)
+            st.success("Account created successfully!")
+        except:
+            st.error("Username already exists")
 
 # ---------------- LOGIN ----------------
-if choice == "Login":
-    st.subheader("🔐 Login")
-
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+if menu == "Login":
+    st.subheader("Login")
+    user = st.text_input("Username")
+    pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        result = login_user(username, password)
+        result = login_user(user, pwd)
         if result:
-            st.success(f"Welcome {username} 👋")
             st.session_state.logged_in = True
-            st.session_state.user = username
+            st.session_state.user = user
+            st.success("Login Successful")
         else:
             st.error("Invalid username or password")
 
-# ---------------- SIGN UP ----------------
-elif choice == "Sign Up":
-    st.subheader("📝 Create Account")
-
-    new_user = st.text_input("Choose Username")
-    new_pass = st.text_input("Choose Password", type="password")
-
-    if st.button("Sign Up"):
-        if new_user == "" or new_pass == "":
-            st.warning("Please fill all fields")
-        else:
-            try:
-                add_user(new_user, new_pass)
-                st.success("Account created successfully!")
-                st.info("Now go to Login")
-            except:
-                st.error("Username already exists")
-
-# ---------------- AFTER LOGIN ----------------
+# ---------------- DASHBOARD ----------------
 if st.session_state.logged_in:
-    st.success("✅ Login Successful")
-    st.write("Next step: Subject & Chapter selection")
-
-#-----------------dashboard-----------------
-from database import save_current_chapter
-
-if st.session_state.logged_in:
-
-    st.header("📚 Class 9 Dashboard")
-    st.write(f"Welcome **{st.session_state.user}**")
+    st.success(f"Welcome {st.session_state.user} 👋")
+    st.subheader("📚 Subject & Chapter Selection")
 
     subject = st.selectbox("Select Subject", list(subjects.keys()))
     chapter = st.selectbox("Select Chapter", subjects[subject])
 
     if st.button("Start Learning"):
-        save_current_chapter(
-            st.session_state.user,
-            subject,
-            chapter
-        )
+        save_current_chapter(st.session_state.user, subject, chapter)
         st.success(f"Selected: {subject} → {chapter}")
-        st.info("Next step: Diagnostic Test")
+        st.info("Next Step: Diagnostic Test")
