@@ -1,6 +1,30 @@
 import streamlit as st
 from database import create_db, add_user, login_user
 
+subjects = {
+    "Physics": [
+        "Motion",
+        "Force and Laws of Motion",
+        "Gravitation",
+        "Work and Energy"
+    ],
+    "Chemistry": [
+        "Matter in Our Surroundings",
+        "Is Matter Around Us Pure",
+        "Atoms and Molecules"
+    ],
+    "Biology": [
+        "The Fundamental Unit of Life",
+        "Tissues",
+        "Diversity in Living Organisms"
+    ],
+    "Mathematics": [
+        "Number Systems",
+        "Polynomials",
+        "Linear Equations in Two Variables"
+    ]
+}
+
 st.set_page_config(page_title="AI Tutor - Class 9", layout="centered")
 
 # create database
@@ -56,3 +80,23 @@ elif choice == "Sign Up":
 if st.session_state.logged_in:
     st.success("✅ Login Successful")
     st.write("Next step: Subject & Chapter selection")
+
+#-----------------dashboard-----------------
+from database import save_current_chapter
+
+if st.session_state.logged_in:
+
+    st.header("📚 Class 9 Dashboard")
+    st.write(f"Welcome **{st.session_state.user}**")
+
+    subject = st.selectbox("Select Subject", list(subjects.keys()))
+    chapter = st.selectbox("Select Chapter", subjects[subject])
+
+    if st.button("Start Learning"):
+        save_current_chapter(
+            st.session_state.user,
+            subject,
+            chapter
+        )
+        st.success(f"Selected: {subject} → {chapter}")
+        st.info("Next step: Diagnostic Test")
