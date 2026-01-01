@@ -5,9 +5,10 @@ from database import create_db, add_user, login_user
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="AI Tutor - Class 9", layout="centered")
 
-# ---------------- DATABASE ----------------
+# ---------------- DATABASE INIT ----------------
 create_db()
 
+# ---------------- LOCAL PROGRESS FUNCTION ----------------
 def save_current_chapter(username, subject, chapter):
     conn = sqlite3.connect("users.db")
     c = conn.cursor()
@@ -28,6 +29,7 @@ def save_current_chapter(username, subject, chapter):
 # ---------------- SESSION STATE ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
 if "user" not in st.session_state:
     st.session_state.user = ""
 
@@ -70,7 +72,7 @@ if menu == "Signup":
     if st.button("Signup"):
         try:
             add_user(new_user, new_pass)
-            st.success("Account created successfully!")
+            st.success("Account created successfully")
         except:
             st.error("Username already exists")
 
@@ -92,6 +94,7 @@ if menu == "Login":
 # ---------------- DASHBOARD ----------------
 if st.session_state.logged_in:
     st.success(f"Welcome {st.session_state.user} 👋")
+
     st.subheader("📚 Subject & Chapter Selection")
 
     subject = st.selectbox("Select Subject", list(subjects.keys()))
@@ -100,4 +103,4 @@ if st.session_state.logged_in:
     if st.button("Start Learning"):
         save_current_chapter(st.session_state.user, subject, chapter)
         st.success(f"Selected: {subject} → {chapter}")
-        st.info("Next Step: Diagnostic Test")
+        st.info("Next step: Diagnostic Test")
