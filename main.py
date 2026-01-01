@@ -1,13 +1,12 @@
 import streamlit as st
 from database import create_db, add_user, login_user
 
-# Page config
-st.set_page_config(page_title="AI Tutor - Login", layout="centered")
+st.set_page_config(page_title="AI Tutor - Class 9", layout="centered")
 
-# Create database
+# create database
 create_db()
 
-# Session state
+# session state
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user" not in st.session_state:
@@ -15,6 +14,7 @@ if "user" not in st.session_state:
 
 st.title("📘 AI Tutor – Class 9")
 
+# SIDEBAR MENU (FIXED)
 menu = ["Login", "Sign Up"]
 choice = st.sidebar.selectbox("Menu", menu)
 
@@ -38,19 +38,21 @@ if choice == "Login":
 elif choice == "Sign Up":
     st.subheader("📝 Create Account")
 
-    new_user = st.text_input("Username")
-    new_pass = st.text_input("Password", type="password")
+    new_user = st.text_input("Choose Username")
+    new_pass = st.text_input("Choose Password", type="password")
 
     if st.button("Sign Up"):
-        try:
-            add_user(new_user, new_pass)
-            st.success("Account created successfully!")
-            st.info("Go to Login to continue")
-        except:
-            st.error("Username already exists")
+        if new_user == "" or new_pass == "":
+            st.warning("Please fill all fields")
+        else:
+            try:
+                add_user(new_user, new_pass)
+                st.success("Account created successfully!")
+                st.info("Now go to Login")
+            except:
+                st.error("Username already exists")
 
 # ---------------- AFTER LOGIN ----------------
 if st.session_state.logged_in:
     st.success("✅ Login Successful")
-    st.write("Next step: Subject & Chapter selection (coming next)")
-
+    st.write("Next step: Subject & Chapter selection")
