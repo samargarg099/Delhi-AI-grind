@@ -1,5 +1,6 @@
 import streamlit as st
-from database import create_db, add_user, login_user
+from database import create_db, add_user, login_user, save_current_chapter
+
 
 subjects = {
     "Physics": [
